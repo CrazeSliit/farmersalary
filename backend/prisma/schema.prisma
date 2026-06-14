@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Farmer {
+  id          Int         @id @default(autoincrement())
+  fmsNo       String      @unique
+  fmsName     String
+  name        String
+  address     String
+  region      String      @default("")
+  centre      String      @default("")
+  bankAccount String      @default("")
+  bankName    String      @default("")
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  milkEntries MilkEntry[]
+  payments    Payment[]
+}
+
+model MilkEntry {
+  id         Int      @id @default(autoincrement())
+  farmerId   Int
+  farmer     Farmer   @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+
+  date       DateTime
+  receiptNo  String
+  litresKg   Float
+  fat        Float
+  snf        Float
+  rate       Float
+  rupees     Float
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  farmerId      Int
+  farmer        Farmer   @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+
+  periodStart   DateTime
+  periodEnd     DateTime
+  totalLitres   Float
+  avgFat        Float
+  avgSnf        Float
+  grossAmount   Float
+  stampDuty     Float    @default(25.00)
+  netAmount     Float
+  bankAccount   String   @default("")
+  bankName      String   @default("")
+
+  createdAt     DateTime @default(now())
+}
+
+model SystemSettings {
+  id    Int    @id @default(autoincrement())
+  key   String @unique
+  value String
+}
