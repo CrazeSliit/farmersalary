@@ -333,7 +333,7 @@ export default function FarmerDetailScreen({ navigation, route }) {
             <TouchableOpacity
               style={styles.viewAllBtn}
               onPress={() =>
-                navigation.navigate('MilkEntryList', { farmerId, farmerName: farmer.name })
+                navigation.navigate('MilkEntryList', { farmerId, farmerName: farmer.name, fmsNo: farmer.fmsNo })
               }
             >
               <Text style={styles.viewAllText}>View All Entries</Text>
@@ -348,7 +348,7 @@ export default function FarmerDetailScreen({ navigation, route }) {
             <TouchableOpacity
               style={styles.actionBtn}
               onPress={() =>
-                navigation.navigate('MilkEntryList', { farmerId, farmerName: farmer.name })
+                navigation.navigate('MilkEntryList', { farmerId, farmerName: farmer.name, fmsNo: farmer.fmsNo })
               }
               activeOpacity={0.85}
             >
