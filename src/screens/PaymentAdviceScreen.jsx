@@ -95,7 +95,8 @@ function buildHtml(payment, farmer, settings, logoUri = null) {
 
 <div class="farmer-box">
   <p><strong>Supplier No:</strong> ${farmer.fmsNo}</p>
-  <p class="bold">${farmer.fmsName ?? farmer.name}</p>
+  <p class="bold" style="font-size:13px;">${farmer.name ?? ''}</p>
+  ${farmer.fmsName && farmer.fmsName !== farmer.name ? `<p style="color:#555;">${farmer.fmsName}</p>` : ''}
   ${addressLines}
 </div>
 
@@ -304,7 +305,10 @@ export default function PaymentAdviceScreen({ navigation, route }) {
         {/* Farmer info */}
         <View style={styles.farmerBox}>
           <Text style={styles.supplierLabel}>Supplier No: <Text style={styles.supplierNo}>{farmer.fmsNo}</Text></Text>
-          <Text style={styles.farmerName}>{farmer.fmsName ?? farmer.name}</Text>
+          <Text style={styles.farmerName}>{farmer.name}</Text>
+          {farmer.fmsName && farmer.fmsName !== farmer.name && (
+            <Text style={styles.fmsNameText}>{farmer.fmsName}</Text>
+          )}
           {(farmer.address ?? '').split('\n').map((line, i) => (
             <Text key={i} style={styles.addressLine}>{line}</Text>
           ))}
@@ -493,6 +497,7 @@ const styles = StyleSheet.create({
   supplierLabel: { fontSize: 12, color: COLORS.textSecondary, fontFamily: MONO },
   supplierNo:    { fontWeight: '700', color: COLORS.text },
   farmerName:    { fontSize: 14, fontWeight: '700', color: COLORS.text, fontFamily: MONO, marginTop: 4 },
+  fmsNameText:   { fontSize: 12, color: COLORS.textSecondary, fontFamily: MONO, marginTop: 2 },
   addressLine:   { fontSize: 12, color: COLORS.textSecondary, fontFamily: MONO },
 
   // Table
