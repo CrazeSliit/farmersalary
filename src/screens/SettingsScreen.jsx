@@ -27,6 +27,7 @@ export default function SettingsScreen() {
     default_region: '',
     default_centre: '',
     stamp_duty:     '',
+    mfss_fund_rate: '',
     base_rate:      '',
     std_fat:        '',
     std_snf:        '',
@@ -48,6 +49,7 @@ export default function SettingsScreen() {
           default_region: data.default_region ?? prev.default_region,
           default_centre: data.default_centre ?? prev.default_centre,
           stamp_duty:     data.stamp_duty     ?? prev.stamp_duty,
+          mfss_fund_rate: data.mfss_fund_rate ?? prev.mfss_fund_rate,
           base_rate:      data.base_rate      ?? prev.base_rate,
           std_fat:        data.std_fat        ?? prev.std_fat,
           std_snf:        data.std_snf        ?? prev.std_snf,
@@ -63,7 +65,7 @@ export default function SettingsScreen() {
 
   async function handleSave() {
     // Validate numeric fields
-    const numericFields = ['stamp_duty', 'base_rate', 'std_fat', 'std_snf', 'fat_premium', 'snf_premium'];
+    const numericFields = ['stamp_duty', 'mfss_fund_rate', 'base_rate', 'std_fat', 'std_snf', 'fat_premium', 'snf_premium'];
     for (const key of numericFields) {
       if (isNaN(parseFloat(form[key])) || form[key].trim() === '') {
         Alert.alert('Validation Error', `${key.replace(/_/g, ' ')} must be a valid number.`);
@@ -140,6 +142,13 @@ export default function SettingsScreen() {
             onChangeText={set('stamp_duty')}
             keyboardType="decimal-pad"
             placeholder="25.00"
+          />
+          <CustomInput
+            label="MFSS Fund Rate (Rs. per Litre)"
+            value={form.mfss_fund_rate}
+            onChangeText={set('mfss_fund_rate')}
+            keyboardType="decimal-pad"
+            placeholder="1.00"
           />
           <CustomInput
             label="Base Rate per Litre (Rs.)"

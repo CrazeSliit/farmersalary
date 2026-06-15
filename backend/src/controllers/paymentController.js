@@ -59,13 +59,16 @@ exports.generatePayment = async (req, res, next) => {
 
     const totals = calculateTotals(entries);
 
-    const stampDutySetting = await prisma.systemSettings.findUnique({
-      where: { key: 'stamp_duty' },
-    });
+    const [stampDutySetting, mfssSetting] = await Promise.all([
+      prisma.systemSettings.findUnique({ where: { key: 'stamp_duty' } }),
+      prisma.systemSettings.findUnique({ where: { key: 'mfss_fund_rate' } }),
+    ]);
     const stampDuty       = stampDutySetting ? parseFloat(stampDutySetting.value) : 25.00;
+    const mfssFundRate    = mfssSetting      ? parseFloat(mfssSetting.value)      : 1.00;
     const feedAmt         = parseFloat(cattleFeed     ?? 0) || 0;
     const medicineAmt     = parseFloat(cattleMedicine ?? 0) || 0;
-    const netAmount       = calculateNetAmount(totals.totalRupees, stampDuty, feedAmt, medicineAmt);
+    const mfssFund        = Math.round(mfssFundRate * totals.totalLitres * 100) / 100;
+    const netAmount       = calculateNetAmount(totals.totalRupees, stampDuty, feedAmt, medicineAmt, mfssFund);
 
     const farmer = await prisma.farmer.findUnique({ where: { id: parseInt(farmerId) } });
 
@@ -81,6 +84,7 @@ exports.generatePayment = async (req, res, next) => {
         stampDuty,
         cattleFeed:     feedAmt,
         cattleMedicine: medicineAmt,
+        mfssFund,
         netAmount,
         bankAccount:   farmer?.bankAccount || '',
         bankName:      farmer?.bankName    || '',
