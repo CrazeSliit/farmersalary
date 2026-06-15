@@ -176,12 +176,24 @@ export default function PaymentAdviceScreen({ navigation, route }) {
   }, [paymentId]);
 
   async function getLogoUri() {
-    const asset = Asset.fromModule(require('../../assets/logo.png'));
-    await asset.downloadAsync();
-    const base64 = await FileSystem.readAsStringAsync(asset.localUri, {
-      encoding: 'base64',
-    });
-    return `data:image/png;base64,${base64}`;
+    try {
+      const asset = Asset.fromModule(require('../../assets/logo.png'));
+      await asset.downloadAsync();
+
+      // On Android production APKs, localUri is a native bundle path like
+      // 'assets_logo' that readAsStringAsync cannot open. copyAsync uses
+      // AssetManager internally and CAN read it, so we copy to cache first.
+      const cacheUri = `${FileSystem.cacheDirectory}hl_logo.png`;
+      await FileSystem.copyAsync({ from: asset.localUri, to: cacheUri });
+
+      const base64 = await FileSystem.readAsStringAsync(cacheUri, {
+        encoding: 'base64',
+      });
+      return `data:image/png;base64,${base64}`;
+    } catch (e) {
+      console.warn('Logo unavailable for PDF:', e.message);
+      return null;
+    }
   }
 
   async function handlePrint() {
