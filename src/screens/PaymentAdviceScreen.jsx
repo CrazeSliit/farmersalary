@@ -7,6 +7,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as Print   from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { Asset } from 'expo-asset';
+import * as FileSystem from 'expo-file-system/legacy';
 import { COLORS } from '../constants/colors';
 import { paymentApi, settingsApi } from '../api/apiService';
 import ConfirmModal from '../components/ConfirmModal';
@@ -177,7 +178,10 @@ export default function PaymentAdviceScreen({ navigation, route }) {
   async function getLogoUri() {
     const asset = Asset.fromModule(require('../../assets/logo.png'));
     await asset.downloadAsync();
-    return asset.localUri;
+    const base64 = await FileSystem.readAsStringAsync(asset.localUri, {
+      encoding: 'base64',
+    });
+    return `data:image/png;base64,${base64}`;
   }
 
   async function handlePrint() {

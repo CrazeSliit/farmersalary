@@ -4,7 +4,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../constants/colors';
 
-import SplashScreen        from '../screens/SplashScreen';
 import HomeScreen          from '../screens/HomeScreen';
 import FarmerListScreen    from '../screens/FarmerListScreen';
 import FarmerRegisterScreen from '../screens/FarmerRegisterScreen';
@@ -48,9 +47,8 @@ function MainTabs() {
 export default function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Splash" component={SplashScreen} />
-        <Stack.Screen name="Main"   component={MainTabs} />
+      <Stack.Navigator initialRouteName="Main" screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Main" component={MainTabs} />
 
         <Stack.Screen
           name="FarmerRegister"
