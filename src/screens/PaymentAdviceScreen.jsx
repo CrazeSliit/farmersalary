@@ -65,6 +65,10 @@ function buildHtml(payment, farmer, settings, logoUri = null) {
 <head>
 <meta charset="utf-8"/>
 <style>
+  @page { margin: 1cm; size: A4; }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
   body { font-family: 'Courier New', monospace; font-size: 11px; padding: 20px; color: #111; }
   .center { text-align: center; }
   .bold   { font-weight: bold; }
@@ -202,9 +206,16 @@ export default function PaymentAdviceScreen({ navigation, route }) {
     setSharing(true);
     try {
       const logoUri = await getLogoUri();
-      await Print.printAsync({
-        html: buildHtml(payment, payment.farmer, settings, logoUri),
-      });
+      const html = buildHtml(payment, payment.farmer, settings, logoUri);
+
+      if (Platform.OS === 'web') {
+        const win = window.open('', '_blank', 'width=800,height=700');
+        win.document.write(html);
+        win.document.close();
+        win.onload = () => { win.focus(); win.print(); };
+      } else {
+        await Print.printAsync({ html });
+      }
     } catch (err) {
       if (!err.message?.includes('cancel')) Alert.alert('Print failed', err.message);
     } finally {
@@ -227,15 +238,24 @@ export default function PaymentAdviceScreen({ navigation, route }) {
 
   async function handleShare() {
     if (!payment) return;
-    const canShare = await Sharing.isAvailableAsync();
-    if (!canShare) { Alert.alert('Sharing not available on this device'); return; }
 
     setSharing(true);
     try {
       const logoUri = await getLogoUri();
-      const { uri } = await Print.printToFileAsync({
-        html: buildHtml(payment, payment.farmer, settings, logoUri),
-      });
+      const html = buildHtml(payment, payment.farmer, settings, logoUri);
+
+      if (Platform.OS === 'web') {
+        const win = window.open('', '_blank', 'width=800,height=700');
+        win.document.write(html);
+        win.document.close();
+        win.onload = () => { win.focus(); win.print(); };
+        return;
+      }
+
+      const canShare = await Sharing.isAvailableAsync();
+      if (!canShare) { Alert.alert('Sharing not available on this device'); return; }
+
+      const { uri } = await Print.printToFileAsync({ html });
       await Sharing.shareAsync(uri, {
         mimeType: 'application/pdf',
         dialogTitle: `Payment Advice — ${payment.farmer?.name ?? ''}`,
