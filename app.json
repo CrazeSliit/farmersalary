@@ -23,7 +23,8 @@
         "image": "./assets/logo.png",
         "resizeMode": "contain",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.craze_sl.farmersalary"
     },
     "web": {
       "favicon": "./assets/logo.png"
@@ -31,6 +32,11 @@
     "plugins": [
       "expo-asset",
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "27cd549d-e2f9-401f-9df0-7cf2ad0d0700"
+      }
+    }
   }
 }
