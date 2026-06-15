@@ -177,9 +177,9 @@ export default function MilkEntryListScreen({ navigation, route }) {
           value={pendingFrom}
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(_, date) => {
-            setShowFromPicker(Platform.OS === 'ios');
-            if (date) setPendingFrom(date);
+          onChange={(event, date) => {
+            if (Platform.OS !== 'ios') setShowFromPicker(false);
+            if (event.type === 'set' && date) setPendingFrom(date);
           }}
         />
       )}
@@ -188,9 +188,9 @@ export default function MilkEntryListScreen({ navigation, route }) {
           value={pendingTo}
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(_, date) => {
-            setShowToPicker(Platform.OS === 'ios');
-            if (date) setPendingTo(date);
+          onChange={(event, date) => {
+            if (Platform.OS !== 'ios') setShowToPicker(false);
+            if (event.type === 'set' && date) setPendingTo(date);
           }}
         />
       )}
@@ -249,7 +249,7 @@ export default function MilkEntryListScreen({ navigation, route }) {
         visible={!!deleteTarget}
         title="Delete Entry?"
         message={deleteTarget
-          ? `Receipt ${deleteTarget.receiptNo}  ·  ${Number(deleteTarget.litresKg).toFixed(2)} L`
+          ? `${Number(deleteTarget.litresKg).toFixed(2)} L  ·  ${new Date(deleteTarget.date).toLocaleDateString('en-GB')}`
           : ''}
         type="danger"
         confirmText="Delete"

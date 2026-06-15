@@ -8,7 +8,6 @@ const router = express.Router();
 const entryValidation = [
   body('farmerId').isInt().withMessage('Valid farmer ID is required'),
   body('date').notEmpty().withMessage('Date is required'),
-  body('receiptNo').notEmpty().withMessage('Receipt number is required'),
   body('litresKg').isFloat({ gt: 0 }).withMessage('Litres must be greater than 0'),
   body('fat').isFloat({ gt: 0 }).withMessage('FAT % is required'),
   body('snf').isFloat({ gt: 0 }).withMessage('SNF % is required'),

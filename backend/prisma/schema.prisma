@@ -31,7 +31,6 @@ model MilkEntry {
   farmer     Farmer   @relation(fields: [farmerId], references: [id], onDelete: Cascade)
 
   date       DateTime
-  receiptNo  String
   litresKg   Float
   fat        Float
   snf        Float

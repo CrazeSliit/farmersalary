@@ -219,7 +219,7 @@ export default function SettingsScreen() {
           </View>
           <View style={styles.aboutRow}>
             <Text style={styles.aboutLabel}>Developer</Text>
-            <Text style={styles.aboutValue}>BIZmaster Solutions</Text>
+            <Text style={styles.aboutValue}>Chamuditha Solutions</Text>
           </View>
         </View>
 

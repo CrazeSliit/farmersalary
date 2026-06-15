@@ -32,12 +32,11 @@ exports.getEntriesByFarmer = async (req, res, next) => {
 
 exports.createEntry = async (req, res, next) => {
   try {
-    const { farmerId, date, receiptNo, litresKg, fat, snf, rate, rupees } = req.body;
+    const { farmerId, date, litresKg, fat, snf, rate, rupees } = req.body;
     const entry = await prisma.milkEntry.create({
       data: {
         farmerId:  parseInt(farmerId),
         date:      new Date(date),
-        receiptNo,
         litresKg:  parseFloat(litresKg),
         fat:       parseFloat(fat),
         snf:       parseFloat(snf),
@@ -53,12 +52,11 @@ exports.createEntry = async (req, res, next) => {
 
 exports.updateEntry = async (req, res, next) => {
   try {
-    const { date, receiptNo, litresKg, fat, snf, rate, rupees } = req.body;
+    const { date, litresKg, fat, snf, rate, rupees } = req.body;
     const entry = await prisma.milkEntry.update({
       where: { id: parseInt(req.params.id) },
       data: {
         date:      date      ? new Date(date)      : undefined,
-        receiptNo: receiptNo ?? undefined,
         litresKg:  litresKg  ? parseFloat(litresKg) : undefined,
         fat:       fat       ? parseFloat(fat)       : undefined,
         snf:       snf       ? parseFloat(snf)       : undefined,

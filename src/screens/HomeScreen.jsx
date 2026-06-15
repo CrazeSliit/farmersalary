@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  RefreshControl, StyleSheet, ActivityIndicator,
+  RefreshControl, StyleSheet, ActivityIndicator, Image,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -102,9 +102,16 @@ export default function HomeScreen({ navigation }) {
     >
       {/* ── Header ──────────────────────────────────────────────── */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>🌿 Highland Farmers Salary</Text>
-          <Text style={styles.headerSub}>Welcome back!</Text>
+        <View style={styles.headerLeft}>
+          <Image
+            source={require('../../assets/logo.png')}
+            style={styles.headerLogo}
+            resizeMode="contain"
+          />
+          <View>
+            <Text style={styles.headerTitle}>Highland Farmers Salary</Text>
+            <Text style={styles.headerSub}>Welcome back!</Text>
+          </View>
         </View>
         <TouchableOpacity
           onPress={() => navigation.navigate('Settings')}
@@ -206,10 +213,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
-  headerTitle: { fontSize: 18, fontWeight: 'bold', color: COLORS.white },
-  headerSub:   { fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
+  headerLeft:  { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  headerLogo:  { width: 44, height: 44, borderRadius: 8 },
+  headerTitle: { fontSize: 16, fontWeight: 'bold', color: COLORS.white },
+  headerSub:   { fontSize: 12, color: 'rgba(255,255,255,0.8)', marginTop: 1 },
 
   // Section
   section:       { marginTop: 16, paddingHorizontal: 16 },

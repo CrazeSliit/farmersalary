@@ -622,7 +622,7 @@ App entry screen showing branding while the app loads. Automatically transitions
 │                                 │
 │        ◌ ◌ ◌  (loading dots)   │
 │                                 │
-│   Powered by BIZmaster          │
+│   Powered by Chamuditha          │
 │           v1.0.0                │
 └─────────────────────────────────┘
 ```
@@ -1279,7 +1279,7 @@ Configure application-wide settings — company name, region, collection centre 
 │  ABOUT                          │
 │  App Version: 1.0.0             │
 │  Highland Farmers Salary        │
-│  Developed by BIZmaster Solutions│
+│  Developed by Chamuditha Solutions│
 ├─────────────────────────────────┤
 │ ┌─────────────────────────────┐ │
 │ │      💾  Save Settings      │ │
@@ -2105,4 +2105,4 @@ export const COLORS = {
 
 *Highland Farmers Salary — Built for Sri Lanka's Dairy Farming Community*
 
-*Version 1.0.0 | © 2026 BIZmaster Solutions*
+*Version 1.0.0 | © 2026 Chamuditha Solutions*

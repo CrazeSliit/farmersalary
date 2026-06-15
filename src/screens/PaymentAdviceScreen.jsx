@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator, Platform,
+  StyleSheet, Alert, ActivityIndicator, Platform, Image,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Print   from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import { Asset } from 'expo-asset';
 import { COLORS } from '../constants/colors';
 import { paymentApi, settingsApi } from '../api/apiService';
+import ConfirmModal from '../components/ConfirmModal';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -38,7 +40,7 @@ function pad(str, len, right = false) {
 
 // ── HTML for printing ─────────────────────────────────────────────────────────
 
-function buildHtml(payment, farmer, settings) {
+function buildHtml(payment, farmer, settings, logoUri = null) {
   const entries = payment.entries ?? [];
   const period  = `${fmtDate(payment.periodStart)} - ${fmtDate(payment.periodEnd)}`;
   const region  = farmer.region  ?? settings.default_region  ?? '';
@@ -47,7 +49,6 @@ function buildHtml(payment, farmer, settings) {
   const entryRows = entries.map(e => `
     <tr>
       <td>${fmtDateShort(e.date)}</td>
-      <td>${e.receiptNo}</td>
       <td class="num">${Number(e.litresKg).toFixed(1)}</td>
       <td class="num">${Number(e.fat).toFixed(1)}</td>
       <td class="num">${Number(e.snf).toFixed(2)}</td>
@@ -84,6 +85,7 @@ function buildHtml(payment, farmer, settings) {
 <body>
 
 <div class="header-box">
+  ${logoUri ? `<div class="center"><img src="${logoUri}" style="height:60px;margin-bottom:6px;" /></div>` : ''}
   <p class="center bold">MILCO (PVT) LTD.</p>
   <p class="center bold">MILK PAYMENT ADVICE</p>
   <p class="center">Period: ${period}</p>
@@ -100,7 +102,6 @@ function buildHtml(payment, farmer, settings) {
   <thead>
     <tr>
       <th>Date</th>
-      <th>Receipt</th>
       <th class="num">L/Kg</th>
       <th class="num">FAT</th>
       <th class="num">SNF</th>
@@ -113,7 +114,7 @@ function buildHtml(payment, farmer, settings) {
   </tbody>
   <tfoot>
     <tr class="total-row">
-      <td colspan="2"><strong>TOTAL</strong></td>
+      <td><strong>TOTAL</strong></td>
       <td class="num">${Number(payment.totalLitres).toFixed(2)}</td>
       <td class="num">${Number(payment.avgFat).toFixed(2)}</td>
       <td class="num">${Number(payment.avgSnf).toFixed(2)}</td>
@@ -147,10 +148,12 @@ function buildHtml(payment, farmer, settings) {
 export default function PaymentAdviceScreen({ navigation, route }) {
   const { paymentId } = route.params ?? {};
 
-  const [payment,  setPayment]  = useState(null);
-  const [settings, setSettings] = useState({});
-  const [loading,  setLoading]  = useState(true);
-  const [sharing,  setSharing]  = useState(false);
+  const [payment,     setPayment]     = useState(null);
+  const [settings,    setSettings]    = useState({});
+  const [loading,     setLoading]     = useState(true);
+  const [sharing,     setSharing]     = useState(false);
+  const [showDelete,  setShowDelete]  = useState(false);
+  const [deleting,    setDeleting]    = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -170,17 +173,37 @@ export default function PaymentAdviceScreen({ navigation, route }) {
     load();
   }, [paymentId]);
 
+  async function getLogoUri() {
+    const asset = Asset.fromModule(require('../../assets/logo.png'));
+    await asset.downloadAsync();
+    return asset.localUri;
+  }
+
   async function handlePrint() {
     if (!payment) return;
     setSharing(true);
     try {
+      const logoUri = await getLogoUri();
       await Print.printAsync({
-        html: buildHtml(payment, payment.farmer, settings),
+        html: buildHtml(payment, payment.farmer, settings, logoUri),
       });
     } catch (err) {
       if (!err.message?.includes('cancel')) Alert.alert('Print failed', err.message);
     } finally {
       setSharing(false);
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      await paymentApi.delete(paymentId);
+      setShowDelete(false);
+      navigation.goBack();
+    } catch (err) {
+      Alert.alert('Error', err.message);
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -191,8 +214,9 @@ export default function PaymentAdviceScreen({ navigation, route }) {
 
     setSharing(true);
     try {
+      const logoUri = await getLogoUri();
       const { uri } = await Print.printToFileAsync({
-        html: buildHtml(payment, payment.farmer, settings),
+        html: buildHtml(payment, payment.farmer, settings, logoUri),
       });
       await Sharing.shareAsync(uri, {
         mimeType: 'application/pdf',
@@ -249,6 +273,11 @@ export default function PaymentAdviceScreen({ navigation, route }) {
 
         {/* Document header */}
         <View style={styles.docBox}>
+          <Image
+            source={require('../../assets/logo.png')}
+            style={styles.docLogo}
+            resizeMode="contain"
+          />
           <Text style={styles.companyName}>MILCO (PVT) LTD.</Text>
           <Text style={styles.docTitle}>MILK PAYMENT ADVICE</Text>
           <Text style={styles.docMeta}>Period: {fmtDate(payment.periodStart)} — {fmtDate(payment.periodEnd)}</Text>
@@ -269,19 +298,17 @@ export default function PaymentAdviceScreen({ navigation, route }) {
 
           {/* Table header */}
           <View style={[styles.tableRow, styles.tableHeaderRow]}>
-            <Text style={[styles.tc, styles.tcDate,  styles.thText]}>Date</Text>
-            <Text style={[styles.tc, styles.tcRcpt,  styles.thText]}>Receipt</Text>
-            <Text style={[styles.tc, styles.tcNum,   styles.thText]}>L/Kg</Text>
-            <Text style={[styles.tc, styles.tcNum,   styles.thText]}>FAT</Text>
-            <Text style={[styles.tc, styles.tcNum,   styles.thText]}>SNF</Text>
-            <Text style={[styles.tc, styles.tcRs,    styles.thText]}>Rs.</Text>
+            <Text style={[styles.tc, styles.tcDate, styles.thText]}>Date</Text>
+            <Text style={[styles.tc, styles.tcNum,  styles.thText]}>L/Kg</Text>
+            <Text style={[styles.tc, styles.tcNum,  styles.thText]}>FAT</Text>
+            <Text style={[styles.tc, styles.tcNum,  styles.thText]}>SNF</Text>
+            <Text style={[styles.tc, styles.tcRs,   styles.thText]}>Rs.</Text>
           </View>
 
           {/* Data rows */}
           {entries.map((e, i) => (
             <View key={e.id} style={[styles.tableRow, i % 2 === 0 && styles.tableRowEven]}>
               <Text style={[styles.tc, styles.tcDate]}>{fmtDateShort(e.date)}</Text>
-              <Text style={[styles.tc, styles.tcRcpt]} numberOfLines={1}>{e.receiptNo}</Text>
               <Text style={[styles.tc, styles.tcNum]}>{Number(e.litresKg).toFixed(1)}</Text>
               <Text style={[styles.tc, styles.tcNum]}>{Number(e.fat).toFixed(1)}</Text>
               <Text style={[styles.tc, styles.tcNum]}>{Number(e.snf).toFixed(2)}</Text>
@@ -291,12 +318,11 @@ export default function PaymentAdviceScreen({ navigation, route }) {
 
           {/* Total row */}
           <View style={[styles.tableRow, styles.totalRow]}>
-            <Text style={[styles.tc, styles.tcDate,  styles.totalText]}>TOTAL</Text>
-            <Text style={[styles.tc, styles.tcRcpt,  styles.totalText]}></Text>
-            <Text style={[styles.tc, styles.tcNum,   styles.totalText]}>{Number(payment.totalLitres).toFixed(2)}</Text>
-            <Text style={[styles.tc, styles.tcNum,   styles.totalText]}>{Number(payment.avgFat).toFixed(2)}</Text>
-            <Text style={[styles.tc, styles.tcNum,   styles.totalText]}>{Number(payment.avgSnf).toFixed(2)}</Text>
-            <Text style={[styles.tc, styles.tcRs,    styles.totalText]}>
+            <Text style={[styles.tc, styles.tcDate, styles.totalText]}>TOTAL</Text>
+            <Text style={[styles.tc, styles.tcNum,  styles.totalText]}>{Number(payment.totalLitres).toFixed(2)}</Text>
+            <Text style={[styles.tc, styles.tcNum,  styles.totalText]}>{Number(payment.avgFat).toFixed(2)}</Text>
+            <Text style={[styles.tc, styles.tcNum,  styles.totalText]}>{Number(payment.avgSnf).toFixed(2)}</Text>
+            <Text style={[styles.tc, styles.tcRs,   styles.totalText]}>
               {Number(payment.grossAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </Text>
           </View>
@@ -339,6 +365,16 @@ export default function PaymentAdviceScreen({ navigation, route }) {
       {/* Action buttons */}
       <View style={styles.actionBar}>
         <TouchableOpacity
+          style={[styles.actionBtn, styles.deleteBtn]}
+          onPress={() => setShowDelete(true)}
+          disabled={sharing || deleting}
+          activeOpacity={0.85}
+        >
+          <MaterialIcons name="delete" size={20} color={COLORS.danger} />
+          <Text style={styles.deleteBtnText}>Delete</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={[styles.actionBtn, styles.printBtn]}
           onPress={handlePrint}
           disabled={sharing}
@@ -370,6 +406,17 @@ export default function PaymentAdviceScreen({ navigation, route }) {
           )}
         </TouchableOpacity>
       </View>
+
+      <ConfirmModal
+        visible={showDelete}
+        title="Delete Payment?"
+        message={`This will permanently remove the payment advice for ${payment.farmer?.name ?? ''}.`}
+        type="danger"
+        confirmText="Delete"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDelete(false)}
+      />
 
     </View>
   );
@@ -407,6 +454,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignItems: 'center',
   },
+  docLogo:     { width: 64, height: 64, marginBottom: 8 },
   companyName: { fontSize: 15, fontWeight: '800', color: COLORS.text, fontFamily: MONO },
   docTitle:    { fontSize: 13, fontWeight: '700', color: COLORS.text, fontFamily: MONO, marginTop: 2 },
   docMeta:     { fontSize: 12, color: COLORS.textSecondary, fontFamily: MONO, marginTop: 3 },
@@ -445,8 +493,7 @@ const styles = StyleSheet.create({
   totalText:{ fontWeight: '700', color: COLORS.primary },
 
   tcDate: { width: 32 },
-  tcRcpt: { flex: 1, paddingHorizontal: 4 },
-  tcNum:  { width: 38, textAlign: 'right' },
+  tcNum:  { flex: 1, textAlign: 'right', paddingHorizontal: 2 },
   tcRs:   { width: 60, textAlign: 'right' },
 
   // Deductions
@@ -502,8 +549,10 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     gap: 8,
   },
-  printBtn:     { borderWidth: 1.5, borderColor: COLORS.primary, backgroundColor: COLORS.surface },
-  shareBtn:     { backgroundColor: COLORS.primary },
-  printBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.primary },
-  shareBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.white },
+  deleteBtn:     { borderWidth: 1.5, borderColor: COLORS.danger, backgroundColor: COLORS.surface },
+  deleteBtnText: { fontSize: 15, fontWeight: '700', color: COLORS.danger },
+  printBtn:      { borderWidth: 1.5, borderColor: COLORS.primary, backgroundColor: COLORS.surface },
+  shareBtn:      { backgroundColor: COLORS.primary },
+  printBtnText:  { fontSize: 15, fontWeight: '700', color: COLORS.primary },
+  shareBtnText:  { fontSize: 15, fontWeight: '700', color: COLORS.white },
 });

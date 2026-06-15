@@ -26,7 +26,6 @@ export default function MilkEntryRow({
     return (
       <View style={styles.row}>
         <Text style={[styles.cell, styles.dateCell,   styles.headerText]}>Date</Text>
-        <Text style={[styles.cell, styles.rcptCell,   styles.headerText]}>Rcpt</Text>
         <Text style={[styles.cell, styles.litresCell, styles.headerText]}>L/Kg</Text>
         <Text style={[styles.cell, styles.fatCell,    styles.headerText]}>FAT</Text>
         <Text style={[styles.cell, styles.rupeesCell, styles.headerText]}>Rs.</Text>
@@ -40,7 +39,6 @@ export default function MilkEntryRow({
     return (
       <View style={[styles.row, styles.totalRow]}>
         <Text style={[styles.cell, styles.dateCell,   styles.totalText]}>TOTAL</Text>
-        <Text style={[styles.cell, styles.rcptCell,   styles.totalText]}></Text>
         <Text style={[styles.cell, styles.litresCell, styles.totalText]}>{fmtNum(entry.totalLitres)}</Text>
         <Text style={[styles.cell, styles.fatCell,    styles.totalText]}>{fmtNum(entry.avgFat)}</Text>
         <Text style={[styles.cell, styles.rupeesCell, styles.totalText]}>{Number(entry.totalRupees ?? 0).toLocaleString()}</Text>
@@ -57,7 +55,6 @@ export default function MilkEntryRow({
       activeOpacity={onEdit ? 0.7 : 1}
     >
       <Text style={[styles.cell, styles.dateCell]}>{fmt(entry.date)}</Text>
-      <Text style={[styles.cell, styles.rcptCell]}  numberOfLines={1}>{entry.receiptNo}</Text>
       <Text style={[styles.cell, styles.litresCell]}>{fmtNum(entry.litresKg)}</Text>
       <Text style={[styles.cell, styles.fatCell]}   >{fmtNum(entry.fat)}</Text>
       <Text style={[styles.cell, styles.rupeesCell]}>{Number(entry.rupees ?? 0).toLocaleString()}</Text>
@@ -95,8 +92,7 @@ const styles = StyleSheet.create({
   totalText:  { fontWeight: '700', color: COLORS.primary },
 
   dateCell:   { width: 40 },
-  rcptCell:   { flex: 1, paddingHorizontal: 4 },
-  litresCell: { width: 48, textAlign: 'right' },
+  litresCell: { flex: 1, textAlign: 'right', paddingHorizontal: 4 },
   fatCell:    { width: 40, textAlign: 'right' },
   rupeesCell: { width: 64, textAlign: 'right' },
   actionCell: { width: 28, alignItems: 'center' },

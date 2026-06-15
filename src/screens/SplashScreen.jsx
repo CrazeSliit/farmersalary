@@ -37,7 +37,7 @@ export default function SplashScreen({ navigation }) {
         <AnimatedDot delay={200} />
         <AnimatedDot delay={400} />
       </View>
-      <Text style={styles.powered}>Powered by BIZmaster</Text>
+      <Text style={styles.powered}>Powered by Chamuditha</Text>
       <Text style={styles.version}>v{APP_VERSION}</Text>
     </View>
   );

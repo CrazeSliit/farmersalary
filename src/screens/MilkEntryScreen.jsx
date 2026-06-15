@@ -32,13 +32,12 @@ function parseLocalDate(str) {
 }
 
 const EMPTY_FORM = {
-  date:      new Date(),
-  receiptNo: '',
-  litresKg:  '',
-  fat:       '',
-  snf:       '',
-  rate:      '',
-  rupees:    0,
+  date:     new Date(),
+  litresKg: '',
+  fat:      '',
+  snf:      '',
+  rate:     '',
+  rupees:   0,
 };
 
 // ── screen ────────────────────────────────────────────────────────────────────
@@ -85,9 +84,8 @@ export default function MilkEntryScreen({ navigation, route }) {
         if (!entry) throw new Error('Entry not found');
 
         setFormData({
-          date:      parseLocalDate(entry.date.slice(0, 10)),
-          receiptNo: entry.receiptNo ?? '',
-          litresKg:  String(entry.litresKg ?? ''),
+          date:     parseLocalDate(entry.date.slice(0, 10)),
+          litresKg: String(entry.litresKg ?? ''),
           fat:       String(entry.fat      ?? ''),
           snf:       String(entry.snf      ?? ''),
           rate:      String(entry.rate     ?? ''),
@@ -156,9 +154,6 @@ export default function MilkEntryScreen({ navigation, route }) {
   const validate = () => {
     const e = {};
 
-    if (!formData.receiptNo.trim())
-      e.receiptNo = 'Receipt number is required';
-
     const l = parseFloat(formData.litresKg);
     if (!formData.litresKg.trim() || isNaN(l) || l <= 0)
       e.litresKg = 'Enter a valid quantity greater than 0';
@@ -187,9 +182,8 @@ export default function MilkEntryScreen({ navigation, route }) {
     try {
       const payload = {
         farmerId,
-        date:      toISO(formData.date),
-        receiptNo: formData.receiptNo.trim(),
-        litresKg:  parseFloat(formData.litresKg),
+        date:     toISO(formData.date),
+        litresKg: parseFloat(formData.litresKg),
         fat:       parseFloat(formData.fat),
         snf:       parseFloat(formData.snf),
         rate:      parseFloat(formData.rate),
@@ -282,15 +276,6 @@ export default function MilkEntryScreen({ navigation, route }) {
             }}
           />
         )}
-
-        <CustomInput
-          label="Receipt Number"
-          value={formData.receiptNo}
-          onChangeText={(v) => setField('receiptNo', v)}
-          placeholder="e.g. 237222"
-          error={errors.receiptNo}
-          required
-        />
 
         <CustomInput
           label="Litres / KG"
