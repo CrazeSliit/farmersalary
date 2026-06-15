@@ -127,6 +127,8 @@ function buildHtml(payment, farmer, settings) {
 
 <div class="deductions">
   <p>STAMP DUTY &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${Number(payment.stampDuty).toFixed(2)}</p>
+  ${payment.cattleFeed > 0 ? `<p>CATTLE FEED &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${Number(payment.cattleFeed).toFixed(2)}</p>` : ''}
+  ${payment.cattleMedicine > 0 ? `<p>CATTLE MEDICINE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ${Number(payment.cattleMedicine).toFixed(2)}</p>` : ''}
   <p class="net-row">*** NET AMOUNT &nbsp;&nbsp; Rs. ${Number(payment.netAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
 </div>
 
@@ -306,6 +308,18 @@ export default function PaymentAdviceScreen({ navigation, route }) {
             <Text style={styles.deductLabel}>STAMP DUTY</Text>
             <Text style={styles.deductValue}>{Number(payment.stampDuty).toFixed(2)}</Text>
           </View>
+          {payment.cattleFeed > 0 && (
+            <View style={styles.deductRow}>
+              <Text style={styles.deductLabel}>CATTLE FEED</Text>
+              <Text style={styles.deductValue}>{Number(payment.cattleFeed).toFixed(2)}</Text>
+            </View>
+          )}
+          {payment.cattleMedicine > 0 && (
+            <View style={styles.deductRow}>
+              <Text style={styles.deductLabel}>CATTLE MEDICINE</Text>
+              <Text style={styles.deductValue}>{Number(payment.cattleMedicine).toFixed(2)}</Text>
+            </View>
+          )}
           <View style={styles.doubleBorder} />
           <View style={styles.deductRow}>
             <Text style={styles.netLabel}>*** NET AMOUNT</Text>

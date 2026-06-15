@@ -31,8 +31,8 @@ function calculateTotals(entries) {
   };
 }
 
-function calculateNetAmount(grossAmount, stampDuty = 25.00) {
-  return Math.round((grossAmount - stampDuty) * 100) / 100;
+function calculateNetAmount(grossAmount, stampDuty = 25.00, cattleFeed = 0, cattleMedicine = 0) {
+  return Math.round((grossAmount - stampDuty - cattleFeed - cattleMedicine) * 100) / 100;
 }
 
 module.exports = { calculateRate, calculateRupees, calculateTotals, calculateNetAmount };

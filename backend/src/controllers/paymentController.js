@@ -37,7 +37,7 @@ exports.getPaymentById = async (req, res, next) => {
 
 exports.generatePayment = async (req, res, next) => {
   try {
-    const { farmerId, periodStart, periodEnd } = req.body;
+    const { farmerId, periodStart, periodEnd, cattleFeed, cattleMedicine } = req.body;
 
     const start = new Date(periodStart);
     const end   = new Date(periodEnd);
@@ -62,24 +62,28 @@ exports.generatePayment = async (req, res, next) => {
     const stampDutySetting = await prisma.systemSettings.findUnique({
       where: { key: 'stamp_duty' },
     });
-    const stampDuty = stampDutySetting ? parseFloat(stampDutySetting.value) : 25.00;
-    const netAmount = calculateNetAmount(totals.totalRupees, stampDuty);
+    const stampDuty       = stampDutySetting ? parseFloat(stampDutySetting.value) : 25.00;
+    const feedAmt         = parseFloat(cattleFeed     ?? 0) || 0;
+    const medicineAmt     = parseFloat(cattleMedicine ?? 0) || 0;
+    const netAmount       = calculateNetAmount(totals.totalRupees, stampDuty, feedAmt, medicineAmt);
 
     const farmer = await prisma.farmer.findUnique({ where: { id: parseInt(farmerId) } });
 
     const payment = await prisma.payment.create({
       data: {
-        farmerId:    parseInt(farmerId),
-        periodStart: start,
-        periodEnd:   end,
-        totalLitres: totals.totalLitres,
-        avgFat:      totals.avgFat,
-        avgSnf:      totals.avgSnf,
-        grossAmount: totals.totalRupees,
+        farmerId:      parseInt(farmerId),
+        periodStart:   start,
+        periodEnd:     end,
+        totalLitres:   totals.totalLitres,
+        avgFat:        totals.avgFat,
+        avgSnf:        totals.avgSnf,
+        grossAmount:   totals.totalRupees,
         stampDuty,
+        cattleFeed:     feedAmt,
+        cattleMedicine: medicineAmt,
         netAmount,
-        bankAccount: farmer?.bankAccount || '',
-        bankName:    farmer?.bankName    || '',
+        bankAccount:   farmer?.bankAccount || '',
+        bankName:      farmer?.bankName    || '',
       },
       include: { farmer: true },
     });

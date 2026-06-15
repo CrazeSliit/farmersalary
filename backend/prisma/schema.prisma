@@ -53,8 +53,10 @@ model Payment {
   avgFat        Float
   avgSnf        Float
   grossAmount   Float
-  stampDuty     Float    @default(25.00)
-  netAmount     Float
+  stampDuty      Float    @default(25.00)
+  cattleFeed     Float    @default(0)
+  cattleMedicine Float    @default(0)
+  netAmount      Float
   bankAccount   String   @default("")
   bankName      String   @default("")
 

@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity,
   StyleSheet, Alert, ActivityIndicator, Platform,
+  TextInput,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -53,6 +54,8 @@ export default function MilkEntryListScreen({ navigation, route }) {
   const [showToPicker,   setShowToPicker]   = useState(false);
   const [deleteTarget,   setDeleteTarget]   = useState(null);
   const [deleting,       setDeleting]       = useState(false);
+  const [cattleFeed,     setCattleFeed]     = useState('');
+  const [cattleMedicine, setCattleMedicine] = useState('');
 
   // ── data ──────────────────────────────────────────────────────────────────
 
@@ -109,8 +112,10 @@ export default function MilkEntryListScreen({ navigation, route }) {
     try {
       const res = await paymentApi.generate({
         farmerId,
-        periodStart: toISO(fromDate),
-        periodEnd:   toISO(toDate),
+        periodStart:   toISO(fromDate),
+        periodEnd:     toISO(toDate),
+        cattleFeed:    cattleFeed    ? parseFloat(cattleFeed)    : 0,
+        cattleMedicine: cattleMedicine ? parseFloat(cattleMedicine) : 0,
       });
       navigation.navigate('PaymentAdvice', { paymentId: res.data.id });
     } catch (err) {
@@ -216,8 +221,17 @@ export default function MilkEntryListScreen({ navigation, route }) {
           )}
           ListFooterComponent={
             entries.length > 0
-              ? <Footer totals={totals} onGenerate={handleGenerate} generating={generating} />
-              : null
+              ? (
+                <Footer
+                  totals={totals}
+                  onGenerate={handleGenerate}
+                  generating={generating}
+                  cattleFeed={cattleFeed}
+                  setCattleFeed={setCattleFeed}
+                  cattleMedicine={cattleMedicine}
+                  setCattleMedicine={setCattleMedicine}
+                />
+              ) : null
           }
           ListEmptyComponent={
             <View style={styles.empty}>
@@ -249,10 +263,14 @@ export default function MilkEntryListScreen({ navigation, route }) {
 
 // ── Footer component ──────────────────────────────────────────────────────────
 
-function Footer({ totals, onGenerate, generating }) {
+function Footer({ totals, onGenerate, generating, cattleFeed, setCattleFeed, cattleMedicine, setCattleMedicine }) {
   function fmtRs(n) {
     return `Rs. ${Number(n ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
+
+  const feedAmt     = parseFloat(cattleFeed)     || 0;
+  const medicineAmt = parseFloat(cattleMedicine) || 0;
+  const grossAmount = totals.totalRupees ?? 0;
 
   return (
     <>
@@ -282,8 +300,46 @@ function Footer({ totals, onGenerate, generating }) {
 
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabelBold}>Gross Amount</Text>
-          <Text style={styles.grossValue}>{fmtRs(totals.totalRupees)}</Text>
+          <Text style={styles.grossValue}>{fmtRs(grossAmount)}</Text>
         </View>
+
+        {/* Deduction inputs */}
+        <View style={styles.divider} />
+        <Text style={styles.deductTitle}>DEDUCTIONS (Optional)</Text>
+
+        <View style={styles.inputRow}>
+          <Text style={styles.inputLabel}>Cattle Feed</Text>
+          <TextInput
+            style={styles.deductInput}
+            value={cattleFeed}
+            onChangeText={setCattleFeed}
+            keyboardType="decimal-pad"
+            placeholder="0.00"
+            placeholderTextColor={COLORS.textDisabled}
+          />
+        </View>
+
+        <View style={styles.inputRow}>
+          <Text style={styles.inputLabel}>Cattle Medicine</Text>
+          <TextInput
+            style={styles.deductInput}
+            value={cattleMedicine}
+            onChangeText={setCattleMedicine}
+            keyboardType="decimal-pad"
+            placeholder="0.00"
+            placeholderTextColor={COLORS.textDisabled}
+          />
+        </View>
+
+        {(feedAmt > 0 || medicineAmt > 0) && (
+          <>
+            <View style={styles.divider} />
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabelBold}>Est. Net Amount</Text>
+              <Text style={styles.grossValue}>{fmtRs(grossAmount - feedAmt - medicineAmt)}</Text>
+            </View>
+          </>
+        )}
       </View>
 
       {/* Generate button */}
@@ -401,6 +457,35 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: COLORS.border,
     marginVertical: 8,
+  },
+
+  // Deduction inputs
+  deductTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    letterSpacing: 1,
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+  },
+  inputLabel: { fontSize: 14, color: COLORS.textSecondary, flex: 1 },
+  deductInput: {
+    width: 110,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    fontSize: 14,
+    color: COLORS.text,
+    textAlign: 'right',
+    backgroundColor: COLORS.background,
   },
 
   // Generate button
