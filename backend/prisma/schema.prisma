@@ -9,7 +9,7 @@ datasource db {
 
 model Farmer {
   id          Int         @id @default(autoincrement())
-  fmsNo       String      @unique
+  fmsNo       String
   fmsName     String
   name        String
   address     String

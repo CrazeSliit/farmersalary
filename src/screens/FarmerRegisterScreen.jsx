@@ -117,11 +117,7 @@ export default function FarmerRegisterScreen({ navigation, route }) {
         ]);
       }
     } catch (err) {
-      if (err.message.toLowerCase().includes('fms number already exists')) {
-        setErrors(prev => ({ ...prev, fmsNo: 'This FMS number is already registered' }));
-      } else {
-        Alert.alert('Error', err.message);
-      }
+      Alert.alert('Error', err.message);
     } finally {
       setLoading(false);
     }

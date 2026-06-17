@@ -55,9 +55,6 @@ exports.createFarmer = async (req, res, next) => {
     });
     res.status(201).json({ success: true, data: farmer });
   } catch (error) {
-    if (error.code === 'P2002') {
-      return res.status(400).json({ success: false, error: 'FMS number already exists' });
-    }
     next(error);
   }
 };
@@ -73,9 +70,6 @@ exports.updateFarmer = async (req, res, next) => {
   } catch (error) {
     if (error.code === 'P2025') {
       return res.status(404).json({ success: false, error: 'Farmer not found' });
-    }
-    if (error.code === 'P2002') {
-      return res.status(400).json({ success: false, error: 'FMS number already exists' });
     }
     next(error);
   }
