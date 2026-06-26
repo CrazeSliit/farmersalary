@@ -16,15 +16,15 @@ import ConfirmModal from '../components/ConfirmModal';
 
 function fmtDate(d) {
   const dt = new Date(d);
-  const yy = String(dt.getFullYear()).slice(2);
-  const mm  = String(dt.getMonth() + 1).padStart(2, '0');
-  const dd  = String(dt.getDate()).padStart(2, '0');
+  const yy = String(dt.getUTCFullYear()).slice(2);
+  const mm  = String(dt.getUTCMonth() + 1).padStart(2, '0');
+  const dd  = String(dt.getUTCDate()).padStart(2, '0');
   return `${yy}/${mm}/${dd}`;
 }
 
 function fmtDateShort(d) {
   const dt = new Date(d);
-  return `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}`;
+  return `${String(dt.getUTCDate()).padStart(2, '0')}/${String(dt.getUTCMonth() + 1).padStart(2, '0')}`;
 }
 
 function fmtRs(n) {
