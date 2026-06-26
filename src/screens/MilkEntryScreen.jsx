@@ -254,27 +254,54 @@ export default function MilkEntryScreen({ navigation, route }) {
         <Text style={styles.label}>
           Collection Date <Text style={styles.asterisk}>*</Text>
         </Text>
-        <TouchableOpacity
-          style={styles.dateField}
-          onPress={() => setShowDatePicker(true)}
-          activeOpacity={0.8}
-        >
-          <MaterialIcons name="calendar-today" size={18} color={COLORS.primary} />
-          <Text style={styles.dateText}>{fmtDisplay(formData.date)}</Text>
-          <MaterialIcons name="arrow-drop-down" size={20} color={COLORS.textSecondary} />
-        </TouchableOpacity>
 
-        {showDatePicker && (
-          <DateTimePicker
-            value={formData.date}
-            mode="date"
-            display={Platform.OS === 'ios' ? 'inline' : 'default'}
-            maximumDate={new Date()}
-            onChange={(_, selected) => {
-              setShowDatePicker(Platform.OS === 'ios');
-              if (selected) setField('date', selected);
-            }}
-          />
+        {Platform.OS === 'web' ? (
+          <View style={styles.dateField}>
+            <MaterialIcons name="calendar-today" size={18} color={COLORS.primary} />
+            <input
+              type="date"
+              value={toISO(formData.date)}
+              max={toISO(new Date())}
+              onChange={(e) => {
+                if (e.target.value) setField('date', parseLocalDate(e.target.value));
+              }}
+              style={{
+                flex: 1,
+                border: 'none',
+                outline: 'none',
+                fontSize: 14,
+                color: COLORS.text,
+                backgroundColor: 'transparent',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            />
+          </View>
+        ) : (
+          <>
+            <TouchableOpacity
+              style={styles.dateField}
+              onPress={() => setShowDatePicker(true)}
+              activeOpacity={0.8}
+            >
+              <MaterialIcons name="calendar-today" size={18} color={COLORS.primary} />
+              <Text style={styles.dateText}>{fmtDisplay(formData.date)}</Text>
+              <MaterialIcons name="arrow-drop-down" size={20} color={COLORS.textSecondary} />
+            </TouchableOpacity>
+
+            {showDatePicker && (
+              <DateTimePicker
+                value={formData.date}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                maximumDate={new Date()}
+                onChange={(_, selected) => {
+                  setShowDatePicker(Platform.OS === 'ios');
+                  if (selected) setField('date', selected);
+                }}
+              />
+            )}
+          </>
         )}
 
         <CustomInput
