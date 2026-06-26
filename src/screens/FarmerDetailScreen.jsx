@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator, Dimensions,
+  StyleSheet, Alert, ActivityIndicator, Dimensions, Platform,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -29,6 +29,26 @@ function fmtRs(n) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
+}
+
+// ── Web bar chart fallback ────────────────────────────────────────────────────
+
+function WebBarChart({ data }) {
+  const values = data.datasets[0].data;
+  const max = Math.max(...values, 1);
+  return (
+    <View style={{ marginTop: 8, gap: 6 }}>
+      {data.labels.map((label, i) => (
+        <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={{ width: 36, fontSize: 11, color: COLORS.textSecondary, textAlign: 'right' }}>{label}</Text>
+          <View style={{ flex: 1, height: 22, backgroundColor: COLORS.background, borderRadius: 4, overflow: 'hidden' }}>
+            <View style={{ width: `${Math.max((values[i] / max) * 100, 2)}%`, height: '100%', backgroundColor: COLORS.primary, borderRadius: 4 }} />
+          </View>
+          <Text style={{ width: 55, fontSize: 11, color: COLORS.text, fontWeight: '600' }}>{Number(values[i]).toFixed(1)} L</Text>
+        </View>
+      ))}
+    </View>
+  );
 }
 
 // ── sub-components ────────────────────────────────────────────────────────────
@@ -384,24 +404,28 @@ export default function FarmerDetailScreen({ navigation, route }) {
             ) : (
               <>
                 <Text style={styles.chartTitle}>Monthly Litres Collected</Text>
-                <BarChart
-                  data={stats.chartData}
-                  width={SCREEN_W - 32}
-                  height={200}
-                  yAxisSuffix=" L"
-                  fromZero
-                  showValuesOnTopOfBars
-                  chartConfig={{
-                    backgroundColor: COLORS.surface,
-                    backgroundGradientFrom: COLORS.surface,
-                    backgroundGradientTo: COLORS.surface,
-                    decimalPlaces: 0,
-                    color: (opacity = 1) => `rgba(46, 125, 50, ${opacity})`,
-                    labelColor: () => COLORS.textSecondary,
-                    style: { borderRadius: 12 },
-                  }}
-                  style={styles.barChart}
-                />
+                {Platform.OS === 'web' ? (
+                  <WebBarChart data={stats.chartData} />
+                ) : (
+                  <BarChart
+                    data={stats.chartData}
+                    width={SCREEN_W - 32}
+                    height={200}
+                    yAxisSuffix=" L"
+                    fromZero
+                    showValuesOnTopOfBars
+                    chartConfig={{
+                      backgroundColor: COLORS.surface,
+                      backgroundGradientFrom: COLORS.surface,
+                      backgroundGradientTo: COLORS.surface,
+                      decimalPlaces: 0,
+                      color: (opacity = 1) => `rgba(46, 125, 50, ${opacity})`,
+                      labelColor: () => COLORS.textSecondary,
+                      style: { borderRadius: 12 },
+                    }}
+                    style={styles.barChart}
+                  />
+                )}
 
                 <Text style={styles.statsSectionTitle}>
                   Current Period — {stats.label}

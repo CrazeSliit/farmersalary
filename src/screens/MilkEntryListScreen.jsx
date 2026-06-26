@@ -26,6 +26,11 @@ function fmtDisplay(date) {
   return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
 }
 
+function parseLocalDate(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
 function fmtRs(n) {
   return `Rs. ${Number(n ?? 0).toLocaleString('en-US', {
     minimumFractionDigits: 2,
@@ -155,24 +160,42 @@ export default function MilkEntryListScreen({ navigation, route }) {
       {/* Date filter */}
       <View style={styles.filterBar}>
         <Text style={styles.filterLabel}>FROM</Text>
-        <TouchableOpacity style={styles.datePill} onPress={() => setShowFromPicker(true)}>
-          <Text style={styles.datePillText}>{fmtDisplay(pendingFrom)}</Text>
-          <MaterialIcons name="calendar-today" size={14} color={COLORS.primary} style={{ marginLeft: 4 }} />
-        </TouchableOpacity>
+        {Platform.OS === 'web' ? (
+          <input
+            type="date"
+            value={toISO(pendingFrom)}
+            onChange={(e) => { if (e.target.value) setPendingFrom(parseLocalDate(e.target.value)); }}
+            style={webDateInputStyle}
+          />
+        ) : (
+          <TouchableOpacity style={styles.datePill} onPress={() => setShowFromPicker(true)}>
+            <Text style={styles.datePillText}>{fmtDisplay(pendingFrom)}</Text>
+            <MaterialIcons name="calendar-today" size={14} color={COLORS.primary} style={{ marginLeft: 4 }} />
+          </TouchableOpacity>
+        )}
 
         <Text style={styles.filterLabel}>TO</Text>
-        <TouchableOpacity style={styles.datePill} onPress={() => setShowToPicker(true)}>
-          <Text style={styles.datePillText}>{fmtDisplay(pendingTo)}</Text>
-          <MaterialIcons name="calendar-today" size={14} color={COLORS.primary} style={{ marginLeft: 4 }} />
-        </TouchableOpacity>
+        {Platform.OS === 'web' ? (
+          <input
+            type="date"
+            value={toISO(pendingTo)}
+            onChange={(e) => { if (e.target.value) setPendingTo(parseLocalDate(e.target.value)); }}
+            style={webDateInputStyle}
+          />
+        ) : (
+          <TouchableOpacity style={styles.datePill} onPress={() => setShowToPicker(true)}>
+            <Text style={styles.datePillText}>{fmtDisplay(pendingTo)}</Text>
+            <MaterialIcons name="calendar-today" size={14} color={COLORS.primary} style={{ marginLeft: 4 }} />
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity style={styles.applyBtn} onPress={applyFilter}>
           <Text style={styles.applyBtnText}>Apply</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Date pickers */}
-      {showFromPicker && (
+      {/* Date pickers — native only */}
+      {Platform.OS !== 'web' && showFromPicker && (
         <DateTimePicker
           value={pendingFrom}
           mode="date"
@@ -183,7 +206,7 @@ export default function MilkEntryListScreen({ navigation, route }) {
           }}
         />
       )}
-      {showToPicker && (
+      {Platform.OS !== 'web' && showToPicker && (
         <DateTimePicker
           value={pendingTo}
           mode="date"
@@ -363,6 +386,19 @@ function Footer({ totals, onGenerate, generating, cattleFeed, setCattleFeed, cat
 }
 
 // ── styles ────────────────────────────────────────────────────────────────────
+
+const webDateInputStyle = {
+  border: `1px solid ${COLORS.primary}`,
+  borderRadius: 6,
+  padding: '5px 8px',
+  fontSize: 12,
+  color: COLORS.primary,
+  fontWeight: '600',
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+  outline: 'none',
+  backgroundColor: 'transparent',
+};
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },

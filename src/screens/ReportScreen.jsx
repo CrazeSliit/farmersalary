@@ -26,6 +26,11 @@ function fmtDisplay(date) {
   return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
 }
 
+function parseLocalDate(str) {
+  const [y, m, d] = str.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
 function fmtRs(n) {
   const v = Number(n ?? 0);
   if (v >= 1_000_000) return `Rs.${(v / 1_000_000).toFixed(1)}M`;
@@ -50,6 +55,26 @@ function monthsInRange(from, to) {
 
 function lastDayOf(year, month) {
   return new Date(year, month + 1, 0);
+}
+
+// ── Web bar chart fallback ────────────────────────────────────────────────────
+
+function WebBarChart({ data }) {
+  const values = data.datasets[0].data;
+  const max = Math.max(...values, 1);
+  return (
+    <View style={{ marginTop: 8, gap: 6 }}>
+      {data.labels.map((label, i) => (
+        <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Text style={{ width: 36, fontSize: 11, color: COLORS.textSecondary, textAlign: 'right' }}>{label}</Text>
+          <View style={{ flex: 1, height: 22, backgroundColor: COLORS.background, borderRadius: 4, overflow: 'hidden' }}>
+            <View style={{ width: `${Math.max((values[i] / max) * 100, 2)}%`, height: '100%', backgroundColor: COLORS.primary, borderRadius: 4 }} />
+          </View>
+          <Text style={{ width: 55, fontSize: 11, color: COLORS.text, fontWeight: '600' }}>{Number(values[i]).toFixed(1)} L</Text>
+        </View>
+      ))}
+    </View>
+  );
 }
 
 // ── Farmer picker modal ───────────────────────────────────────────────────────
@@ -241,17 +266,35 @@ export default function ReportScreen() {
           <View style={styles.dateRow}>
             <View style={styles.dateField}>
               <Text style={styles.filterLabel}>FROM</Text>
-              <TouchableOpacity style={styles.datePill} onPress={() => setShowFromPicker(true)}>
-                <Text style={styles.datePillText}>{fmtDisplay(pendingFrom)}</Text>
-                <MaterialIcons name="calendar-today" size={14} color={COLORS.primary} style={{ marginLeft: 4 }} />
-              </TouchableOpacity>
+              {Platform.OS === 'web' ? (
+                <input
+                  type="date"
+                  value={toISO(pendingFrom)}
+                  onChange={(e) => { if (e.target.value) setPendingFrom(parseLocalDate(e.target.value)); }}
+                  style={webDateInputStyle}
+                />
+              ) : (
+                <TouchableOpacity style={styles.datePill} onPress={() => setShowFromPicker(true)}>
+                  <Text style={styles.datePillText}>{fmtDisplay(pendingFrom)}</Text>
+                  <MaterialIcons name="calendar-today" size={14} color={COLORS.primary} style={{ marginLeft: 4 }} />
+                </TouchableOpacity>
+              )}
             </View>
             <View style={styles.dateField}>
               <Text style={styles.filterLabel}>TO</Text>
-              <TouchableOpacity style={styles.datePill} onPress={() => setShowToPicker(true)}>
-                <Text style={styles.datePillText}>{fmtDisplay(pendingTo)}</Text>
-                <MaterialIcons name="calendar-today" size={14} color={COLORS.primary} style={{ marginLeft: 4 }} />
-              </TouchableOpacity>
+              {Platform.OS === 'web' ? (
+                <input
+                  type="date"
+                  value={toISO(pendingTo)}
+                  onChange={(e) => { if (e.target.value) setPendingTo(parseLocalDate(e.target.value)); }}
+                  style={webDateInputStyle}
+                />
+              ) : (
+                <TouchableOpacity style={styles.datePill} onPress={() => setShowToPicker(true)}>
+                  <Text style={styles.datePillText}>{fmtDisplay(pendingTo)}</Text>
+                  <MaterialIcons name="calendar-today" size={14} color={COLORS.primary} style={{ marginLeft: 4 }} />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
 
@@ -278,8 +321,8 @@ export default function ReportScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Date pickers */}
-        {showFromPicker && (
+        {/* Date pickers — native only */}
+        {Platform.OS !== 'web' && showFromPicker && (
           <DateTimePicker
             value={pendingFrom}
             mode="date"
@@ -287,7 +330,7 @@ export default function ReportScreen() {
             onChange={(_, date) => { setShowFromPicker(Platform.OS === 'ios'); if (date) setPendingFrom(date); }}
           />
         )}
-        {showToPicker && (
+        {Platform.OS !== 'web' && showToPicker && (
           <DateTimePicker
             value={pendingTo}
             mode="date"
@@ -335,16 +378,20 @@ export default function ReportScreen() {
             {chartData && (
               <View style={styles.card}>
                 <Text style={styles.sectionLabel}>MONTHLY MILK VOLUME (LITRES)</Text>
-                <BarChart
-                  data={chartData}
-                  width={SCREEN_W - 48}
-                  height={200}
-                  chartConfig={chartConfig}
-                  style={{ borderRadius: 8, marginTop: 8 }}
-                  fromZero
-                  showValuesOnTopOfBars
-                  withInnerLines={false}
-                />
+                {Platform.OS === 'web' ? (
+                  <WebBarChart data={chartData} />
+                ) : (
+                  <BarChart
+                    data={chartData}
+                    width={SCREEN_W - 48}
+                    height={200}
+                    chartConfig={chartConfig}
+                    style={{ borderRadius: 8, marginTop: 8 }}
+                    fromZero
+                    showValuesOnTopOfBars
+                    withInnerLines={false}
+                  />
+                )}
               </View>
             )}
 
@@ -404,6 +451,21 @@ export default function ReportScreen() {
 }
 
 // ── styles ────────────────────────────────────────────────────────────────────
+
+const webDateInputStyle = {
+  border: `1px solid ${COLORS.primary}`,
+  borderRadius: 6,
+  padding: '7px 10px',
+  fontSize: 13,
+  color: COLORS.primary,
+  fontWeight: '600',
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+  outline: 'none',
+  backgroundColor: 'transparent',
+  width: '100%',
+  boxSizing: 'border-box',
+};
 
 const styles = StyleSheet.create({
   container:    { flex: 1, backgroundColor: COLORS.background },
